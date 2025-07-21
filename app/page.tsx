@@ -5,7 +5,7 @@ import { ServerComponentExample } from "@/components/ServerComponentExample";
 
 export default function Home() {
   return (
-    <div className="font-sans min-h-screen bg-gray-50">
+    <div className="font-sans min-h-screen ">
       {/* Header */}
       <header className="bg-white shadow-sm border-b">
         <Container maxWidth="full" padding="6" margin="auto">
@@ -28,7 +28,7 @@ export default function Home() {
             Typography Sizes
           </Text>
           <div className="space-y-4">
-            <Text size="xs">Extra Small Text (xs)</Text>
+            <Text tag="h1" size="xs" className="bg-amber-600">Extra Small Text (xs)</Text>
             <Text size="sm">Small Text (sm)</Text>
             <Text size="base">Base Text (base)</Text>
             <Text size="lg">Large Text (lg)</Text>
