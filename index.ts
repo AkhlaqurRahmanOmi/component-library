@@ -50,21 +50,21 @@ export type {
   ColorVariant,
   ColorIntensity,
   ColorWithIntensity,
-  
+
   // Spacing system
   SpacingVariant,
   ResponsiveSpacing,
-  
+
   // Size system
   SizeVariant,
-  
+
   // Layout and display
   DisplayVariant,
   FlexDirection,
   JustifyContent,
   AlignItems,
   FlexWrap,
-  
+
   // Typography
   TextSize,
   FontWeight,
@@ -73,38 +73,38 @@ export type {
   TextTransform,
   LetterSpacing,
   LineHeight,
-  
+
   // Borders and visual
   BorderWidth,
   BorderStyle,
   BorderRadius,
   BorderVariant,
   ShadowVariant,
-  
+
   // Component variants
   ComponentSize,
   ButtonVariant,
   InputVariant,
   FieldState,
   InputType,
-  
+
   // Responsive design
   Breakpoint,
   ResponsiveValue,
-  
+
   // Base interfaces
   BaseComponentProps,
   AccessibilityProps,
   InteractiveProps,
   LayoutProps,
   VisualProps,
-  
+
   // Utility types
   DeepPartial,
   ComponentProps,
   PolymorphicProps,
   HTMLElementTag,
-  
+
 
 } from './components/types';
 
@@ -124,7 +124,7 @@ export {
   buildComponentClassesMemo,
   clearClassCache,
   validateTailwindClasses,
-  
+
   // Tailwind class mappings
   textColorMap,
   backgroundColorMap,
@@ -153,7 +153,7 @@ export {
   buttonVariantMap,
   inputVariantMap,
   fieldStateMap,
-  
+
   // Component-specific class builders
   buildTextClasses,
   buildInputClasses,

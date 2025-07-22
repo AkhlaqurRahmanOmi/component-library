@@ -1,0 +1,150 @@
+import { Meta } from '@storybook/blocks';
+
+<Meta title="Introduction" />
+
+# Component Library
+
+Welcome to our comprehensive React component library built with TypeScript and Tailwind CSS. This library provides flexible, accessible, and highly customizable components for building modern web applications.
+
+## Features
+
+- **🎨 Flexible Styling**: Prop-driven approach with Tailwind CSS integration
+- **♿ Accessibility First**: Built-in ARIA attributes and keyboard navigation
+- **📱 Responsive Design**: Mobile-first responsive components
+- **🔧 TypeScript Support**: Full type safety with comprehensive interfaces
+- **🧪 Well Tested**: Comprehensive unit and accessibility tests
+- **📚 Documented**: Extensive documentation with interactive examples
+
+## Components
+
+### Text Component
+A flexible text component that can render different HTML tags with comprehensive typography options.
+
+**Key Features:**
+- Dynamic HTML tag rendering (p, h1-h6, span, div)
+- Complete typography control (size, weight, color, alignment)
+- Accessibility support with ARIA attributes
+- Interactive event handling
+
+### Input Component
+A flexible form input with comprehensive styling and validation options.
+
+**Key Features:**
+- Multiple input types support (text, email, password, etc.)
+- Built-in validation states and error handling
+- Label positioning options (top, left, floating)
+- Accessibility compliance with proper associations
+
+### Container Component
+A flexible layout container with comprehensive styling options.
+
+**Key Features:**
+- Multiple display types (block, flex, grid)
+- Responsive design support
+- Background, border, and shadow styling
+- Layout utilities (margin, padding, positioning)
+
+### Button Component
+An interactive button with multiple variants and states.
+
+**Key Features:**
+- Predefined style variants (primary, secondary, outline, ghost, danger)
+- Loading and disabled states
+- Icon support with proper spacing
+- Size variations and full-width option
+
+## Design Principles
+
+### Consistency
+All components follow consistent naming conventions and prop patterns, making the library easy to learn and use.
+
+### Flexibility
+Components are designed to be highly customizable through props while maintaining sensible defaults.
+
+### Accessibility
+Every component includes proper ARIA attributes, keyboard navigation, and screen reader support out of the box.
+
+### Performance
+Components use memoization and efficient class generation to minimize re-renders and optimize bundle size.
+
+## Getting Started
+
+### Installation
+
+```bash
+npm install your-component-library
+```
+
+### Basic Usage
+
+```tsx
+import { Button, Text, Input, Container } from 'your-component-library';
+
+function App() {
+  return (
+    <Container display="flex" direction="column" gap="4" padding="6">
+      <Text tag="h1" size="2xl" weight="bold">
+        Welcome to Our App
+      </Text>
+      
+      <Input
+        label="Email"
+        type="email"
+        placeholder="Enter your email"
+        required
+      />
+      
+      <Button variant="primary" size="lg">
+        Get Started
+      </Button>
+    </Container>
+  );
+}
+```
+
+### TypeScript Support
+
+All components come with comprehensive TypeScript definitions:
+
+```tsx
+import type { ButtonProps, TextProps } from 'your-component-library';
+
+const MyButton: React.FC<ButtonProps> = (props) => {
+  return <Button {...props} />;
+};
+```
+
+## Best Practices
+
+### Accessibility
+- Always provide `ariaLabel` for icon-only buttons
+- Use semantic HTML tags with the Text component
+- Ensure proper form labels with Input components
+- Test with screen readers and keyboard navigation
+
+### Performance
+- Use the `className` prop for custom styling when needed
+- Leverage the built-in responsive props instead of custom CSS
+- Consider using `React.memo` for components that render frequently
+
+### Styling
+- Prefer component props over custom CSS classes
+- Use the design system colors and spacing values
+- Test components across different screen sizes
+- Maintain consistent visual hierarchy
+
+## Browser Support
+
+This component library supports all modern browsers:
+- Chrome 90+
+- Firefox 88+
+- Safari 14+
+- Edge 90+
+
+## Contributing
+
+We welcome contributions! Please see our contributing guidelines for more information.
+
+## License
+
+MIT License - see LICENSE file for details.
