@@ -1,6 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { Text } from './Text';
-import type { TextProps } from './Text.types';
 
 const meta: Meta<typeof Text> = {
   title: 'Components/Text',
@@ -62,10 +61,6 @@ const meta: Meta<typeof Text> = {
     onClick: {
       action: 'clicked',
       description: 'Click handler',
-    },
-    onHover: {
-      action: 'hovered',
-      description: 'Hover handler',
     },
   },
 };
@@ -225,13 +220,12 @@ export const Interactive: Story = {
   args: {
     children: 'Click me or hover over me',
     onClick: () => alert('Text clicked!'),
-    onHover: () => console.log('Text hovered'),
     className: 'cursor-pointer hover:text-blue-600 transition-colors',
   },
   parameters: {
     docs: {
       description: {
-        story: 'Interactive text with click and hover handlers.',
+        story: 'Interactive text with click handler.',
       },
     },
   },

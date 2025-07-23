@@ -10,7 +10,6 @@ import {
   testAriaCompliance,
   testFormAccessibility,
   testFocusManagement,
-  testScreenReaderAnnouncements,
   testHighContrastMode
 } from '../../../utils/accessibility';
 
@@ -54,7 +53,7 @@ describe('Input Component - Accessibility Tests', () => {
       const states = [
         <Input key="normal" label="Normal input" />,
         <Input key="disabled" disabled label="Disabled input" />,
-        <Input key="readonly" readOnly label="Readonly input" />,
+        <Input key="readonly" readonly label="Readonly input" />,
         <Input key="required" required label="Required input" />,
         <Input key="error" error errorMessage="Error message" label="Error input" />
       ];
@@ -260,7 +259,7 @@ describe('Input Component - Accessibility Tests', () => {
 
       render(
         <Input 
-          readOnly 
+          readonly 
           onChange={handleChange} 
           label="Readonly Input" 
           defaultValue="Read only value"

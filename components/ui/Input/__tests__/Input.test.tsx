@@ -14,10 +14,10 @@ describe('Input Component', () => {
     });
 
     it('renders with different input types', () => {
-      const types: Array<InputProps['type']> = [
+      const types = [
         'email', 'password', 'number', 'tel', 'url', 'search',
         'date', 'time', 'datetime-local', 'month', 'week'
-      ];
+      ] as const;
       
       types.forEach((type) => {
         const { unmount } = render(<Input type={type} data-testid={`input-${type}`} />);
@@ -106,7 +106,7 @@ describe('Input Component', () => {
 
   describe('Styling Props', () => {
     it('applies size classes correctly', () => {
-      const sizes: Array<InputProps['size']> = ['xs', 'sm', 'base', 'lg', 'xl', '2xl'];
+      const sizes = ['xs', 'sm', 'base', 'lg', 'xl', '2xl'] as const;
       
       sizes.forEach((size) => {
         const { unmount } = render(<Input size={size} data-testid={`input-${size}`} />);
@@ -130,7 +130,7 @@ describe('Input Component', () => {
     });
 
     it('applies variant classes correctly', () => {
-      const variants: Array<InputProps['variant']> = ['default', 'outline', 'filled', 'underline'];
+      const variants = ['default', 'outline', 'filled', 'underline'] as const;
       
       variants.forEach((variant) => {
         const { unmount } = render(<Input variant={variant} data-testid={`input-${variant}`} />);
@@ -620,8 +620,6 @@ describe('Input Component', () => {
     });
 
     it('handles date input type correctly', async () => {
-      const user = userEvent.setup();
-      
       render(<Input type="date" />);
       
       const input = screen.getByRole('textbox');

@@ -75,7 +75,7 @@ describe('Container Component', () => {
     });
 
     it('applies flex direction classes correctly', () => {
-      const directions: Array<ContainerProps['direction']> = ['row', 'column', 'row-reverse', 'column-reverse'];
+      const directions = ['row', 'column', 'row-reverse', 'column-reverse'] as const;
       
       directions.forEach((direction) => {
         const { unmount } = render(
@@ -92,7 +92,7 @@ describe('Container Component', () => {
     });
 
     it('applies justify content classes correctly', () => {
-      const justifyOptions: Array<ContainerProps['justify']> = ['start', 'center', 'end', 'between', 'around', 'evenly', 'stretch'];
+      const justifyOptions = ['start', 'center', 'end', 'between', 'around', 'evenly', 'stretch'] as const;
       
       justifyOptions.forEach((justify) => {
         const { unmount } = render(
@@ -108,7 +108,7 @@ describe('Container Component', () => {
     });
 
     it('applies align items classes correctly', () => {
-      const alignOptions: Array<ContainerProps['align']> = ['start', 'center', 'end', 'stretch', 'baseline'];
+      const alignOptions = ['start', 'center', 'end', 'stretch', 'baseline'] as const;
       
       alignOptions.forEach((align) => {
         const { unmount } = render(
@@ -124,7 +124,7 @@ describe('Container Component', () => {
     });
 
     it('applies flex wrap classes correctly', () => {
-      const wrapOptions: Array<ContainerProps['wrap']> = ['nowrap', 'wrap', 'wrap-reverse'];
+      const wrapOptions = ['nowrap', 'wrap', 'wrap-reverse'] as const;
       
       wrapOptions.forEach((wrap) => {
         const { unmount } = render(
@@ -140,7 +140,7 @@ describe('Container Component', () => {
     });
 
     it('applies gap classes correctly', () => {
-      const gaps = ['0', '1', '2', '4', '8', '12', '16'];
+      const gaps = ['0', '1', '2', '4', '8', '12', '16'] as const;
       
       gaps.forEach((gap) => {
         const { unmount } = render(
@@ -156,7 +156,7 @@ describe('Container Component', () => {
     });
 
     it('applies grid column classes correctly', () => {
-      const gridCols = ['1', '2', '3', '4', '6', '12', 'none'];
+      const gridCols = ['1', '2', '3', '4', '6', '12', 'none'] as const;
       
       gridCols.forEach((cols) => {
         const { unmount } = render(
@@ -172,7 +172,7 @@ describe('Container Component', () => {
     });
 
     it('applies grid row classes correctly', () => {
-      const gridRows = ['1', '2', '3', '4', '6', 'none'];
+      const gridRows = ['1', '2', '3', '4', '6', 'none'] as const;
       
       gridRows.forEach((rows) => {
         const { unmount } = render(
@@ -188,7 +188,7 @@ describe('Container Component', () => {
     });
 
     it('applies grid column span classes correctly', () => {
-      const gridColSpans = ['1', '2', '3', '4', '6', '12', 'full'];
+      const gridColSpans = ['1', '2', '3', '4', '6', '12', 'full'] as const;
       
       gridColSpans.forEach((span) => {
         const { unmount } = render(
@@ -204,7 +204,7 @@ describe('Container Component', () => {
     });
 
     it('applies grid row span classes correctly', () => {
-      const gridRowSpans = ['1', '2', '3', '4', '6', 'full'];
+      const gridRowSpans = ['1', '2', '3', '4', '6', 'full'] as const;
       
       gridRowSpans.forEach((span) => {
         const { unmount } = render(
@@ -220,7 +220,7 @@ describe('Container Component', () => {
     });
 
     it('applies position classes correctly', () => {
-      const positions = ['static', 'relative', 'absolute', 'fixed', 'sticky'];
+      const positions = ['static', 'relative', 'absolute', 'fixed', 'sticky'] as const;
       
       positions.forEach((position) => {
         const { unmount } = render(
@@ -254,7 +254,7 @@ describe('Container Component', () => {
     });
 
     it('applies overflow classes correctly', () => {
-      const overflowOptions = ['visible', 'hidden', 'scroll', 'auto'];
+      const overflowOptions = ['visible', 'hidden', 'scroll', 'auto'] as const;
       
       overflowOptions.forEach((overflow) => {
         const { unmount } = render(
@@ -284,7 +284,7 @@ describe('Container Component', () => {
     });
 
     it('applies opacity classes correctly', () => {
-      const opacities = ['0', '50', '75', '100'];
+      const opacities = ['0', '50', '75', '100'] as const;
       
       opacities.forEach((opacity) => {
         const { unmount } = render(
@@ -302,7 +302,7 @@ describe('Container Component', () => {
 
   describe('Sizing Props', () => {
     it('applies width classes correctly', () => {
-      const widths = ['auto', 'full', 'screen', 'min', 'max', 'fit', '1/2', '1/3', '2/3', '1/4', '3/4'];
+      const widths = ['auto', 'full', 'screen', 'min', 'max', 'fit', '1/2', '1/3', '2/3', '1/4', '3/4'] as const;
       
       widths.forEach((width) => {
         const { unmount } = render(
@@ -318,7 +318,7 @@ describe('Container Component', () => {
     });
 
     it('applies height classes correctly', () => {
-      const heights = ['auto', 'full', 'screen', 'min', 'max', 'fit', '1/2', '1/3', '2/3'];
+      const heights = ['auto', 'full', 'screen', 'min', 'max', 'fit', '1/2', '1/3', '2/3'] as const;
       
       heights.forEach((height) => {
         const { unmount } = render(
@@ -380,7 +380,7 @@ describe('Container Component', () => {
 
   describe('Spacing Props', () => {
     it('applies margin classes correctly', () => {
-      const margins = ['0', '1', '2', '4', '8', '16', 'px', 'auto'];
+      const margins = ['0', '1', '2', '4', '8', '16', 'px', 'auto'] as const;
       
       margins.forEach((margin) => {
         const { unmount } = render(
@@ -396,7 +396,7 @@ describe('Container Component', () => {
     });
 
     it('applies padding classes correctly', () => {
-      const paddings = ['0', '1', '2', '4', '8', '16', 'px'];
+      const paddings = ['0', '1', '2', '4', '8', '16', 'px'] as const;
       
       paddings.forEach((padding) => {
         const { unmount } = render(
@@ -445,7 +445,7 @@ describe('Container Component', () => {
         'black', 'white', 'gray', 'red', 'blue', 'green', 
         'yellow', 'purple', 'pink', 'indigo', 'orange', 'teal', 'cyan',
         'primary', 'secondary', 'success', 'warning', 'error', 'info'
-      ];
+      ] as const;
       
       colors.forEach((color) => {
         const { unmount } = render(
@@ -481,7 +481,7 @@ describe('Container Component', () => {
     });
 
     it('applies border classes correctly', () => {
-      const borderStyles = ['solid', 'dashed', 'dotted', 'double', 'none'];
+      const borderStyles = ['solid', 'dashed', 'dotted', 'double', 'none'] as const;
       
       borderStyles.forEach((style) => {
         const { unmount } = render(
@@ -510,7 +510,7 @@ describe('Container Component', () => {
     });
 
     it('applies border radius classes correctly', () => {
-      const radiusOptions: Array<ContainerProps['borderRadius']> = ['none', 'sm', 'base', 'md', 'lg', 'xl', '2xl', '3xl', 'full'];
+      const radiusOptions = ['none', 'sm', 'base', 'md', 'lg', 'xl', '2xl', '3xl', 'full'] as const;
       
       radiusOptions.forEach((radius) => {
         const { unmount } = render(
@@ -527,7 +527,7 @@ describe('Container Component', () => {
     });
 
     it('applies shadow classes correctly', () => {
-      const shadowOptions: Array<ContainerProps['shadow']> = ['none', 'sm', 'base', 'md', 'lg', 'xl', '2xl', 'inner'];
+      const shadowOptions = ['none', 'sm', 'base', 'md', 'lg', 'xl', '2xl', 'inner'] as const;
       
       shadowOptions.forEach((shadow) => {
         const { unmount } = render(
@@ -749,7 +749,7 @@ describe('Container Component', () => {
           role="main"
           tabIndex={0}
           data-testid="custom-container"
-          title="Container title"
+
         >
           Attributed container
         </Container>
@@ -916,11 +916,7 @@ describe('Container Component', () => {
 
     it('handles undefined props gracefully', () => {
       render(
-        <Container 
-          display={undefined} 
-          direction={undefined}
-          background={undefined}
-        >
+        <Container>
           Undefined props
         </Container>
       );

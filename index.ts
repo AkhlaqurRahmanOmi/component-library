@@ -31,6 +31,14 @@ export { Text } from './components/ui/Text';
 export { Input } from './components/ui/Input';
 export { Container } from './components/ui/Container';
 
+// Re-export composite components
+export { Card } from './components/most-used-component/Card';
+export { Modal } from './components/most-used-component/Modal';
+export { Form } from './components/most-used-component/Form';
+export { Navigation } from './components/most-used-component/Navigation';
+export { Alert } from './components/most-used-component/Alert';
+export { Dropdown } from './components/most-used-component/Dropdown';
+
 // =============================================================================
 // COMPONENT TYPES - Direct exports for better TypeScript experience
 // =============================================================================
@@ -40,6 +48,14 @@ export type { ButtonProps } from './components/ui/Button';
 export type { TextProps } from './components/ui/Text';
 export type { InputProps } from './components/ui/Input';
 export type { ContainerProps } from './components/ui/Container';
+
+// Re-export composite component prop types
+export type { CardProps } from './components/most-used-component/Card';
+export type { ModalProps } from './components/most-used-component/Modal';
+export type { FormProps } from './components/most-used-component/Form';
+export type { NavigationProps } from './components/most-used-component/Navigation';
+export type { AlertProps } from './components/most-used-component/Alert';
+export type { DropdownProps } from './components/most-used-component/Dropdown';
 
 // =============================================================================
 // COMMON TYPES - All shared type definitions

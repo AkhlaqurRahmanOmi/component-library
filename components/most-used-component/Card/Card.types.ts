@@ -5,54 +5,62 @@ import type { ButtonProps } from '../../ui/Button/Button.types';
 
 /**
  * Card component props interface
- * Combines Container, Text, and Button functionality for card layouts
+ * Combines Container, Text, and Button functionality for versatile card layouts
  */
 export interface CardProps extends Omit<ContainerProps, 'children'> {
-  /** Card title */
-  title?: string;
-  /** Card subtitle */
-  subtitle?: string;
-  /** Card description/content */
-  description?: string;
-  /** Custom content to render in the card body */
+  // Card content
   children?: React.ReactNode;
   
-  /** Header content (overrides title/subtitle if provided) */
-  header?: React.ReactNode;
-  /** Footer content */
-  footer?: React.ReactNode;
+  // Header section
+  title?: string;
+  subtitle?: string;
+  headerContent?: React.ReactNode;
   
-  /** Image source for card image */
-  imageSrc?: string;
-  /** Image alt text */
-  imageAlt?: string;
-  /** Image position */
-  imagePosition?: 'top' | 'bottom' | 'left' | 'right';
+  // Body section
+  content?: React.ReactNode;
+  description?: string;
   
-  /** Primary action button */
+  // Footer section
+  footerContent?: React.ReactNode;
+  
+  // Action buttons
   primaryAction?: {
     label: string;
     onClick: () => void;
-  } & Partial<ButtonProps>;
-  
-  /** Secondary action button */
+    variant?: ButtonProps['variant'];
+    disabled?: boolean;
+    loading?: boolean;
+    ariaLabel?: string;
+  };
   secondaryAction?: {
     label: string;
     onClick: () => void;
-  } & Partial<ButtonProps>;
+    variant?: ButtonProps['variant'];
+    disabled?: boolean;
+    loading?: boolean;
+    ariaLabel?: string;
+  };
   
-  /** Card variant */
+  // Card variants
   variant?: 'default' | 'outlined' | 'elevated' | 'filled';
   
-  /** Whether the card is clickable */
+  // Interactive states
+  hoverable?: boolean;
   clickable?: boolean;
-  /** Click handler for the entire card */
   onCardClick?: () => void;
   
-  /** Whether the card is in a loading state */
-  loading?: boolean;
+  // Layout options
+  orientation?: 'vertical' | 'horizontal';
+  imagePosition?: 'top' | 'left' | 'right' | 'bottom';
   
-  /** Custom styling for different card sections */
+  // Image/media
+  image?: {
+    src: string;
+    alt: string;
+    aspectRatio?: 'square' | 'video' | 'wide' | 'tall';
+  };
+  
+  // Styling overrides
   headerProps?: Partial<ContainerProps>;
   bodyProps?: Partial<ContainerProps>;
   footerProps?: Partial<ContainerProps>;
@@ -61,7 +69,4 @@ export interface CardProps extends Omit<ContainerProps, 'children'> {
   descriptionProps?: Partial<TextProps>;
 }
 
-/**
- * Card component ref type
- */
 export type CardRef = HTMLDivElement;

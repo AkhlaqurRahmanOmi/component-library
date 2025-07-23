@@ -15,7 +15,7 @@ describe('Button Component', () => {
     });
 
     it('renders with different button types', () => {
-      const types: Array<ButtonProps['type']> = ['button', 'submit', 'reset'];
+      const types = ['button', 'submit', 'reset'] as const;
       
       types.forEach((type) => {
         const { unmount } = render(
@@ -51,7 +51,7 @@ describe('Button Component', () => {
 
   describe('Style Props', () => {
     it('applies variant classes correctly', () => {
-      const variants: Array<ButtonProps['variant']> = ['primary', 'secondary', 'outline', 'ghost', 'danger', 'success'];
+      const variants = ['primary', 'secondary', 'outline', 'ghost', 'danger', 'success'] as const;
       
       variants.forEach((variant) => {
         const { unmount } = render(

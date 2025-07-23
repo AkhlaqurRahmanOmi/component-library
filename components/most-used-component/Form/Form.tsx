@@ -1,427 +1,468 @@
+"use client";
+
 import * as React from 'react';
 import { Container } from '../../ui/Container';
 import { Text } from '../../ui/Text';
-import { Input } from '../../ui/Input';
 import { Button } from '../../ui/Button';
-import type { 
-  FormProps, 
-  FormFieldProps, 
-  FormGroupProps, 
-  FormActionsProps,
-  FormDataState,
-  FormValidationState,
-  ValidationRule
-} from './Form.types';
+import { Input } from '../../ui/Input';
+import { cn } from '../../utils/classNames';
+import type { FormProps, FormRef, FormValues, FormErrors, FormField } from './Form.types';
 
 /**
- * Form Field component
+ * Form component combining Input, Button, and Text components with validation
+ * 
+ * A comprehensive form component that handles form state, validation,
+ * and submission with a flexible field configuration system.
+ * 
+ * @example
+ * ```tsx
+ * // Basic form with field configuration
+ * <Form
+ *   title="Contact Form"
+ *   fields={[
+ *     {
+ *       name: 'name',
+ *       label: 'Full Name',
+ *       required: true,
+ *       validation: { minLength: 2 }
+ *     },
+ *     {
+ *       name: 'email',
+ *       label: 'Email',
+ *       type: 'email',
+ *       required: true
+ *     }
+ *   ]}
+ *   onSubmit={(values) => console.log(values)}
+ * />
+ * 
+ * // Custom form with children
+ * <Form
+ *   title="Custom Form"
+ *   onSubmit={handleSubmit}
+ *   submitButton={{ label: "Save Changes" }}
+ * >
+ *   <Input name="username" label="Username" required />
+ *   <Input name="password" label="Password" type="password" required />
+ * </Form>
+ * ```
  */
-const FormField: React.FC<FormFieldProps> = ({
-  config,
-  value,
-  error,
-  touched,
-  onChange,
-  onBlur,
-  isSubmitting,
-  className,
-  ...props
-}) => {
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    onChange(config.name, event.target.value);
-  };
-
-  const handleBlur = () => {
-    onBlur(config.name);
-  };
-
-  return (
-    <Container className={`form-field ${className || ''}`} {...props}>
-      <Input
-        name={config.name}
-        type={config.type}
-        label={config.label}
-        placeholder={config.placeholder}
-        value={value || ''}
-        onChange={handleChange}
-        onBlur={handleBlur}
-        required={config.required}
-        error={!!error}
-        errorMessage={error}
-        disabled={isSubmitting}
-        fullWidth
-        {...config.fieldProps}
-      />
-    </Container>
-  );
-};
-
-/**
- * Form Group component
- */
-const FormGroup: React.FC<FormGroupProps> = ({
-  title,
-  description,
-  children,
-  spacing = "4",
-  className,
-  ...props
-}) => {
-  return (
-    <Container
-      className={`form-group ${className || ''}`}
-      marginBottom={spacing}
-      {...props}
-    >
-      {title && (
-        <Text
-          tag="h3"
-          size="lg"
-          weight="medium"
-          marginBottom="2"
-          className="form-group-title"
-        >
-          {title}
-        </Text>
-      )}
-      {description && (
-        <Text
-          tag="p"
-          size="sm"
-          color="gray-600"
-          marginBottom="4"
-          className="form-group-description"
-        >
-          {description}
-        </Text>
-      )}
-      <Container gap={spacing}>
-        {children}
-      </Container>
-    </Container>
-  );
-};
-
-/**
- * Form Actions component
- */
-const FormActions: React.FC<FormActionsProps> = ({
-  submitText = "Submit",
-  cancelText = "Cancel",
-  resetText = "Reset",
-  showCancel = false,
-  showReset = false,
-  onCancel,
-  onReset,
-  isSubmitting = false,
-  isValid = true,
-  align = "right",
-  children,
-  className,
-  ...props
-}) => {
-  const justifyMap = {
-    left: 'start',
-    center: 'center',
-    right: 'end',
-    between: 'between'
-  } as const;
-
-  return (
-    <Container
-      className={`form-actions ${className || ''}`}
-      display="flex"
-      justify={justifyMap[align]}
-      align="center"
-      gap="3"
-      marginTop="6"
-      {...props}
-    >
-      {showReset && (
-        <Button
-          type="button"
-          variant="ghost"
-          onClick={onReset}
-          disabled={isSubmitting}
-        >
-          {resetText}
-        </Button>
-      )}
-      {showCancel && (
-        <Button
-          type="button"
-          variant="secondary"
-          onClick={onCancel}
-          disabled={isSubmitting}
-        >
-          {cancelText}
-        </Button>
-      )}
-      <Button
-        type="submit"
-        variant="primary"
-        loading={isSubmitting}
-        disabled={!isValid || isSubmitting}
-      >
-        {submitText}
-      </Button>
-      {children}
-    </Container>
-  );
-};
-
-/**
- * Validation utilities
- */
-const validateField = (value: any, rules: ValidationRule[], formData?: Record<string, any>): string => {
-  for (const rule of rules) {
-    const result = rule.validate(value, formData);
-    if (result !== true) {
-      return typeof result === 'string' ? result : rule.message || 'Invalid value';
-    }
-  }
-  return '';
-};
-
-const validateForm = (
-  values: Record<string, any>,
-  fields: FormProps['fields'] = [],
-  customValidator?: FormProps['onValidate']
-): FormValidationState => {
-  const errors: Record<string, string> = {};
-
-  // Validate individual fields
-  fields.forEach(field => {
-    if (field.validation) {
-      const error = validateField(values[field.name], field.validation, values);
-      if (error) {
-        errors[field.name] = error;
-      }
-    }
-  });
-
-  // Run custom validation
-  if (customValidator) {
-    const customErrors = customValidator(values);
-    Object.assign(errors, customErrors);
-  }
-
-  return {
-    errors,
-    isValid: Object.keys(errors).length === 0,
-    touched: {}
-  };
-};
-
-/**
- * Main Form component
- */
-export const Form: React.FC<FormProps> & {
-  Field: typeof FormField;
-  Group: typeof FormGroup;
-  Actions: typeof FormActions;
-} = ({
-  children,
-  fields = [],
-  initialValues = {},
-  onSubmit,
-  onChange,
-  onValidate,
-  onReset,
-  actions,
-  validateOnChange = true,
-  validateOnBlur = true,
-  showErrorsImmediately = false,
-  fieldSpacing = "4",
-  layout = "vertical",
-  width = "full",
-  maxWidth,
-  padding,
-  disabled = false,
-  loading = false,
-  className,
-  method,
-  action,
-  encType,
-  target,
-  noValidate = true,
-  ...props
-}) => {
-  // Form state
-  const [formData, setFormData] = React.useState<FormDataState>(() => {
-    const values = { ...initialValues };
-    fields.forEach(field => {
-      if (values[field.name] === undefined) {
-        values[field.name] = field.defaultValue || '';
-      }
-    });
-
-    return {
-      values,
-      validation: validateForm(values, fields, onValidate),
-      isSubmitting: false,
-      hasSubmitted: false
-    };
-  });
-
-  // Update form data
-  const updateFormData = (updates: Partial<FormDataState>) => {
-    setFormData(prev => {
-      const newData = { ...prev, ...updates };
-      onChange?.(newData);
-      return newData;
-    });
-  };
-
-  // Handle field change
-  const handleFieldChange = (name: string, value: any) => {
-    const newValues = { ...formData.values, [name]: value };
-    const validation = validateOnChange 
-      ? validateForm(newValues, fields, onValidate)
-      : formData.validation;
-
-    updateFormData({
-      values: newValues,
-      validation
-    });
-  };
-
-  // Handle field blur
-  const handleFieldBlur = (name: string) => {
-    if (!validateOnBlur) return;
-
-    const validation = validateForm(formData.values, fields, onValidate);
-    const newTouched = { ...formData.validation.touched, [name]: true };
-
-    updateFormData({
-      validation: {
-        ...validation,
-        touched: newTouched
-      }
-    });
-  };
-
-  // Handle form submit
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
+export const Form = React.forwardRef<FormRef, FormProps>(
+  (
+    {
+      // Form configuration
+      fields = [],
+      children,
+      
+      // Form state
+      values: controlledValues,
+      errors: controlledErrors,
+      defaultValues = {},
+      
+      // Form behavior
+      onSubmit,
+      onChange,
+      onValidate,
+      
+      // Validation options
+      validateOnChange = false,
+      validateOnBlur = true,
+      showErrorsOnSubmit = true,
+      
+      // Layout options
+      layout = 'vertical',
+      spacing = 'normal',
+      
+      // Header props
+      title,
+      subtitle,
+      description,
+      headerContent,
+      
+      // Footer props
+      footerContent,
+      submitButton = { label: 'Submit' },
+      resetButton = false,
+      customActions,
+      
+      // State props
+      loading = false,
+      disabled = false,
+      
+      // Styling overrides
+      formProps,
+      headerProps,
+      bodyProps,
+      footerProps,
+      titleProps,
+      subtitleProps,
+      descriptionProps,
+      fieldProps,
+      
+      // HTML form props
+      className,
+      ...htmlFormProps
+    },
+    ref
+  ) => {
+    // Internal form state
+    const [internalValues, setInternalValues] = React.useState<FormValues>(defaultValues);
+    const [internalErrors, setInternalErrors] = React.useState<FormErrors>({});
+    const [touched, setTouched] = React.useState<Record<string, boolean>>({});
+    const [isSubmitting, setIsSubmitting] = React.useState(false);
     
-    if (disabled || loading || formData.isSubmitting) return;
-
-    // Validate form
-    const validation = validateForm(formData.values, fields, onValidate);
-    const allTouched = fields.reduce((acc, field) => {
-      acc[field.name] = true;
-      return acc;
-    }, {} as Record<string, boolean>);
-
-    updateFormData({
-      validation: {
-        ...validation,
-        touched: allTouched
-      },
-      isSubmitting: true,
-      hasSubmitted: true
-    });
-
-    if (!validation.isValid) {
-      updateFormData({ isSubmitting: false });
-      return;
-    }
-
-    try {
-      await onSubmit(formData.values);
-    } catch (error) {
-      console.error('Form submission error:', error);
-    } finally {
-      updateFormData({ isSubmitting: false });
-    }
-  };
-
-  // Handle form reset
-  const handleReset = () => {
-    const values = { ...initialValues };
-    fields.forEach(field => {
-      if (values[field.name] === undefined) {
-        values[field.name] = field.defaultValue || '';
+    // Use controlled or internal state
+    const values = controlledValues ?? internalValues;
+    const errors = controlledErrors ?? internalErrors;
+    
+    // Get spacing classes
+    const getSpacingClass = () => {
+      switch (spacing) {
+        case 'tight':
+          return 'space-y-3';
+        case 'loose':
+          return 'space-y-6';
+        default:
+          return 'space-y-4';
       }
-    });
-
-    updateFormData({
-      values,
-      validation: validateForm(values, fields, onValidate),
-      isSubmitting: false,
-      hasSubmitted: false
-    });
-
-    onReset?.();
-  };
-
-  // Get layout classes
-  const getLayoutClasses = () => {
-    switch (layout) {
-      case 'horizontal':
-        return 'space-y-4';
-      case 'inline':
-        return 'flex flex-wrap gap-4';
-      default:
-        return 'space-y-4';
-    }
-  };
-
-  return (
-    <Container
-      as="form"
-      className={`form ${getLayoutClasses()} ${className || ''}`}
-      width={width}
-      maxWidth={maxWidth}
-      padding={padding}
-      onSubmit={handleSubmit}
-      method={method}
-      action={action}
-      encType={encType}
-      target={target}
-      noValidate={noValidate}
-      {...props}
-    >
-      {/* Render configured fields */}
-      {fields.map(field => {
-        const shouldShowError = showErrorsImmediately || 
-          formData.validation.touched[field.name] || 
-          formData.hasSubmitted;
-
+    };
+    
+    // Validate a single field
+    const validateField = React.useCallback((field: FormField, value: string): string | null => {
+      const { validation, required } = field;
+      
+      // Required validation
+      if (required && (!value || value.trim() === '')) {
+        return `${field.label || field.name} is required`;
+      }
+      
+      // Skip other validations if field is empty and not required
+      if (!value || value.trim() === '') {
+        return null;
+      }
+      
+      if (validation) {
+        // Pattern validation
+        if (validation.pattern && !new RegExp(validation.pattern).test(value)) {
+          return `${field.label || field.name} format is invalid`;
+        }
+        
+        // Length validations
+        if (validation.minLength && value.length < validation.minLength) {
+          return `${field.label || field.name} must be at least ${validation.minLength} characters`;
+        }
+        
+        if (validation.maxLength && value.length > validation.maxLength) {
+          return `${field.label || field.name} must be no more than ${validation.maxLength} characters`;
+        }
+        
+        // Numeric validations
+        const numValue = parseFloat(value);
+        if (!isNaN(numValue)) {
+          if (validation.min !== undefined && numValue < validation.min) {
+            return `${field.label || field.name} must be at least ${validation.min}`;
+          }
+          
+          if (validation.max !== undefined && numValue > validation.max) {
+            return `${field.label || field.name} must be no more than ${validation.max}`;
+          }
+        }
+        
+        // Custom validation
+        if (validation.custom) {
+          const customError = validation.custom(value);
+          if (customError) {
+            return customError;
+          }
+        }
+      }
+      
+      return null;
+    }, []);
+    
+    // Validate all fields
+    const validateForm = React.useCallback((formValues: FormValues): FormErrors => {
+      const newErrors: FormErrors = {};
+      
+      // Validate configured fields
+      fields.forEach(field => {
+        const error = validateField(field, formValues[field.name] || '');
+        if (error) {
+          newErrors[field.name] = error;
+        }
+      });
+      
+      // Custom validation
+      if (onValidate) {
+        const customErrors = onValidate(formValues);
+        Object.assign(newErrors, customErrors);
+      }
+      
+      return newErrors;
+    }, [fields, validateField, onValidate]);
+    
+    // Handle field value change
+    const handleFieldChange = React.useCallback((fieldName: string, value: string) => {
+      const newValues = { ...values, [fieldName]: value };
+      
+      // Update internal state if not controlled
+      if (controlledValues === undefined) {
+        setInternalValues(newValues);
+      }
+      
+      // Validate on change if enabled
+      if (validateOnChange) {
+        const field = fields.find(f => f.name === fieldName);
+        if (field) {
+          const error = validateField(field, value);
+          const newErrors = { ...errors };
+          if (error) {
+            newErrors[fieldName] = error;
+          } else {
+            delete newErrors[fieldName];
+          }
+          
+          if (controlledErrors === undefined) {
+            setInternalErrors(newErrors);
+          }
+        }
+      }
+      
+      // Call onChange callback
+      onChange?.(newValues, fieldName);
+    }, [values, errors, controlledValues, controlledErrors, validateOnChange, fields, validateField, onChange]);
+    
+    // Handle field blur
+    const handleFieldBlur = React.useCallback((fieldName: string) => {
+      setTouched(prev => ({ ...prev, [fieldName]: true }));
+      
+      // Validate on blur if enabled
+      if (validateOnBlur) {
+        const field = fields.find(f => f.name === fieldName);
+        if (field) {
+          const error = validateField(field, values[fieldName] || '');
+          const newErrors = { ...errors };
+          if (error) {
+            newErrors[fieldName] = error;
+          } else {
+            delete newErrors[fieldName];
+          }
+          
+          if (controlledErrors === undefined) {
+            setInternalErrors(newErrors);
+          }
+        }
+      }
+    }, [validateOnBlur, fields, validateField, values, errors, controlledErrors]);
+    
+    // Handle form submission
+    const handleSubmit = React.useCallback(async (event: React.FormEvent<HTMLFormElement>) => {
+      event.preventDefault();
+      
+      if (disabled || loading || isSubmitting) {
+        return;
+      }
+      
+      setIsSubmitting(true);
+      
+      try {
+        // Validate form
+        const validationErrors = validateForm(values);
+        
+        if (showErrorsOnSubmit && Object.keys(validationErrors).length > 0) {
+          if (controlledErrors === undefined) {
+            setInternalErrors(validationErrors);
+          }
+          // Mark all fields as touched to show errors
+          const allTouched = fields.reduce((acc, field) => {
+            acc[field.name] = true;
+            return acc;
+          }, {} as Record<string, boolean>);
+          setTouched(allTouched);
+          return;
+        }
+        
+        // Clear errors if validation passes
+        if (controlledErrors === undefined) {
+          setInternalErrors({});
+        }
+        
+        // Call onSubmit
+        if (onSubmit) {
+          await onSubmit(values, event);
+        }
+      } finally {
+        setIsSubmitting(false);
+      }
+    }, [disabled, loading, isSubmitting, validateForm, values, showErrorsOnSubmit, controlledErrors, fields, onSubmit]);
+    
+    // Handle form reset
+    const handleReset = React.useCallback(() => {
+      if (controlledValues === undefined) {
+        setInternalValues(defaultValues);
+      }
+      if (controlledErrors === undefined) {
+        setInternalErrors({});
+      }
+      setTouched({});
+      
+      if (resetButton && typeof resetButton === 'object' && resetButton.onClick) {
+        resetButton.onClick();
+      }
+    }, [controlledValues, controlledErrors, defaultValues, resetButton]);
+    
+    // Render header section
+    const renderHeader = () => {
+      if (!title && !subtitle && !description && !headerContent) return null;
+      
+      return (
+        <Container
+          marginBottom="6"
+          {...headerProps}
+        >
+          {headerContent || (
+            <>
+              {title && (
+                <Text
+                  tag="h2"
+                  size="xl"
+                  weight="semibold"
+                  color="gray-900"
+                  marginBottom={subtitle || description ? "2" : "0"}
+                  {...titleProps}
+                >
+                  {title}
+                </Text>
+              )}
+              {subtitle && (
+                <Text
+                  tag="p"
+                  size="lg"
+                  color="gray-700"
+                  marginBottom={description ? "2" : "0"}
+                  {...subtitleProps}
+                >
+                  {subtitle}
+                </Text>
+              )}
+              {description && (
+                <Text
+                  color="gray-600"
+                  {...descriptionProps}
+                >
+                  {description}
+                </Text>
+              )}
+            </>
+          )}
+        </Container>
+      );
+    };
+    
+    // Render form fields
+    const renderFields = () => {
+      if (children) {
+        return children;
+      }
+      
+      return fields.map((field) => {
+        const fieldError = (touched[field.name] || showErrorsOnSubmit) ? errors[field.name] : undefined;
+        
         return (
-          <FormField
-            key={field.name}
-            config={field}
-            value={formData.values[field.name]}
-            error={shouldShowError ? formData.validation.errors[field.name] : undefined}
-            touched={formData.validation.touched[field.name]}
-            onChange={handleFieldChange}
-            onBlur={handleFieldBlur}
-            isSubmitting={formData.isSubmitting || loading}
-          />
+          <Container key={field.name} {...fieldProps}>
+            <Input
+              name={field.name}
+              label={field.label}
+              type={field.type || 'text'}
+              placeholder={field.placeholder ?? ''}
+              required={field.required ?? false}
+              value={values[field.name] || ''}
+              onChange={(e) => handleFieldChange(field.name, e.target.value)}
+              onBlur={() => handleFieldBlur(field.name)}
+              error={!!fieldError}
+              errorMessage={fieldError}
+              disabled={disabled || loading}
+              fullWidth
+              {...field.inputProps}
+            />
+          </Container>
         );
-      })}
-
-      {/* Custom form content */}
-      {children}
-
-      {/* Form actions */}
-      {actions && (
-        <FormActions
-          {...actions}
-          onReset={handleReset}
-          isSubmitting={formData.isSubmitting || loading}
-          isValid={formData.validation.isValid}
-        />
-      )}
-    </Container>
-  );
-};
-
-// Attach sub-components
-Form.Field = FormField;
-Form.Group = FormGroup;
-Form.Actions = FormActions;
+      });
+    };
+    
+    // Render footer section
+    const renderFooter = () => {
+      const hasActions = submitButton !== false || resetButton !== false || customActions;
+      const hasFooterContent = footerContent || hasActions;
+      
+      if (!hasFooterContent) return null;
+      
+      return (
+        <Container
+          marginTop="6"
+          {...footerProps}
+        >
+          {footerContent || (
+            hasActions && (
+              <Container
+                display="flex"
+                gap="3"
+                justify={layout === 'horizontal' ? 'end' : 'start'}
+                direction={layout === 'vertical' ? 'column' : 'row'}
+              >
+                {resetButton !== false && (
+                  <Button
+                    type="button"
+                    variant={(typeof resetButton === 'object' && resetButton.variant) || 'outline'}
+                    onClick={handleReset}
+                    disabled={disabled || loading || isSubmitting || (typeof resetButton === 'object' && resetButton.disabled) || false}
+                    fullWidth={layout === 'vertical'}
+                  >
+                    {(typeof resetButton === 'object' && resetButton.label) || 'Reset'}
+                  </Button>
+                )}
+                {customActions}
+                {submitButton !== false && (
+                  <Button
+                    type="submit"
+                    variant={(typeof submitButton === 'object' && submitButton.variant) || 'primary'}
+                    disabled={disabled || (typeof submitButton === 'object' && submitButton.disabled) || false}
+                    loading={loading || isSubmitting || (typeof submitButton === 'object' && submitButton.loading) || false}
+                    fullWidth={layout === 'vertical' || (typeof submitButton === 'object' && submitButton.fullWidth) || false}
+                  >
+                    {(typeof submitButton === 'object' && submitButton.label) || 'Submit'}
+                  </Button>
+                )}
+              </Container>
+            )
+          )}
+        </Container>
+      );
+    };
+    
+    return (
+      <form
+        ref={ref}
+        className={cn(
+          'w-full',
+          className
+        )}
+        onSubmit={handleSubmit}
+        {...htmlFormProps}
+      >
+        <Container {...formProps}>
+          {renderHeader()}
+          <Container
+            className={getSpacingClass()}
+            {...bodyProps}
+          >
+            {renderFields()}
+          </Container>
+          {renderFooter()}
+        </Container>
+      </form>
+    );
+  }
+);
 
 Form.displayName = 'Form';

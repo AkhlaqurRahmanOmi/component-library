@@ -1,5 +1,6 @@
+"use client";
+
 import * as React from 'react';
-import { createPortal } from 'react-dom';
 import { Container } from '../../ui/Container';
 import { Text } from '../../ui/Text';
 import { Button } from '../../ui/Button';
@@ -9,190 +10,179 @@ import type { ModalProps, ModalRef } from './Modal.types';
 /**
  * Modal component using Container, Button, and Text with overlay functionality
  * 
- * A flexible modal dialog component that supports various sizes, actions,
- * and customization options with proper accessibility features.
+ * A flexible modal dialog component that provides overlay functionality,
+ * keyboard navigation, focus management, and customizable content areas.
  * 
  * @example
  * ```tsx
+ * // Basic modal with title and actions
  * <Modal
- *   open={isOpen}
+ *   isOpen={isOpen}
  *   onClose={() => setIsOpen(false)}
  *   title="Confirm Action"
- *   description="Are you sure you want to proceed?"
  *   primaryAction={{
  *     label: "Confirm",
  *     onClick: handleConfirm
  *   }}
  *   secondaryAction={{
  *     label: "Cancel",
- *     onClick: () => setIsOpen(false),
- *     variant: "outline"
+ *     onClick: () => setIsOpen(false)
  *   }}
- * />
+ * >
+ *   <Text>Are you sure you want to perform this action?</Text>
+ * </Modal>
+ * 
+ * // Custom modal with header content
+ * <Modal
+ *   isOpen={isOpen}
+ *   onClose={() => setIsOpen(false)}
+ *   size="lg"
+ *   headerContent={<CustomHeader />}
+ * >
+ *   <CustomContent />
+ * </Modal>
  * ```
  */
 export const Modal = React.forwardRef<ModalRef, ModalProps>(
   (
     {
-      // Core modal props
-      open,
+      // Core props
+      isOpen,
       onClose,
-      title,
-      description,
       children,
-      header,
-      footer,
-      size = 'md',
+      
+      // Header props
+      title,
+      subtitle,
+      headerContent,
+      showCloseButton = true,
+      
+      // Footer props
+      footerContent,
+      primaryAction,
+      secondaryAction,
       
       // Behavior props
       closeOnOverlayClick = true,
       closeOnEscape = true,
-      showCloseButton = true,
+      preventScroll = true,
       
-      // Action props
-      primaryAction,
-      secondaryAction,
-      
-      // State props
-      loading = false,
+      // Sizing props
+      size = 'md',
+      maxWidth,
+      maxHeight,
+      centered = true,
       
       // Styling props
-      overlayProps,
-      containerProps,
-      headerProps,
-      bodyProps,
-      footerProps,
-      titleProps,
-      descriptionProps,
+      overlayClassName,
+      modalClassName,
+      animationDuration = 200,
       
       // Accessibility props
       ariaLabel,
       ariaDescribedBy,
       ariaLabelledBy,
+      role = 'dialog',
       
-      // Class names
-      className,
-      overlayClassName,
-      
-      // Portal props
-      portalTarget,
-      animationDuration = 200,
+      // Override props
+      overlayProps,
+      modalProps,
+      headerProps,
+      bodyProps,
+      footerProps,
+      titleProps,
+      subtitleProps,
     },
     ref
   ) => {
-    const [isVisible, setIsVisible] = React.useState(false);
-    const [isAnimating, setIsAnimating] = React.useState(false);
     const modalRef = React.useRef<HTMLDivElement>(null);
-    const previousFocusRef = React.useRef<HTMLElement | null>(null);
+    const previousActiveElement = React.useRef<HTMLElement | null>(null);
     
-    // Handle portal target
-    const [portalElement, setPortalElement] = React.useState<Element | null>(null);
+    // Combine refs
+    React.useImperativeHandle(ref, () => modalRef.current!);
     
-    React.useEffect(() => {
-      if (typeof window !== 'undefined') {
-        setPortalElement(portalTarget || document.body);
-      }
-    }, [portalTarget]);
-    
-    // Modal size classes
+    // Get modal size classes
     const getSizeClasses = () => {
-      switch (size) {
-        case 'sm':
-          return 'max-w-sm';
-        case 'md':
-          return 'max-w-md';
-        case 'lg':
-          return 'max-w-lg';
-        case 'xl':
-          return 'max-w-xl';
-        case 'full':
-          return 'max-w-full mx-4';
-        default:
-          return 'max-w-md';
-      }
+      const sizeMap = {
+        xs: 'max-w-xs',
+        sm: 'max-w-sm',
+        md: 'max-w-md',
+        lg: 'max-w-lg',
+        xl: 'max-w-xl',
+        '2xl': 'max-w-2xl',
+        full: 'max-w-full'
+      };
+      return sizeMap[size];
     };
-    
-    // Handle modal open/close animations
-    React.useEffect(() => {
-      if (open) {
-        setIsVisible(true);
-        setIsAnimating(true);
-        // Store the currently focused element
-        previousFocusRef.current = document.activeElement as HTMLElement;
-        
-        // Focus the modal after animation
-        setTimeout(() => {
-          setIsAnimating(false);
-          modalRef.current?.focus();
-        }, animationDuration);
-      } else if (isVisible) {
-        setIsAnimating(true);
-        setTimeout(() => {
-          setIsVisible(false);
-          setIsAnimating(false);
-          // Restore focus to the previously focused element
-          previousFocusRef.current?.focus();
-        }, animationDuration);
-      }
-    }, [open, animationDuration, isVisible]);
     
     // Handle escape key
     React.useEffect(() => {
-      if (!closeOnEscape || !isVisible) return;
-      
       const handleEscape = (event: KeyboardEvent) => {
-        if (event.key === 'Escape') {
+        if (event.key === 'Escape' && closeOnEscape && isOpen) {
           onClose();
         }
       };
       
-      document.addEventListener('keydown', handleEscape);
-      return () => document.removeEventListener('keydown', handleEscape);
-    }, [closeOnEscape, isVisible, onClose]);
+      if (isOpen) {
+        document.addEventListener('keydown', handleEscape);
+        return () => document.removeEventListener('keydown', handleEscape);
+      }
+    }, [isOpen, closeOnEscape, onClose]);
     
-    // Handle focus trap
+    // Handle body scroll prevention
     React.useEffect(() => {
-      if (!isVisible) return;
-      
-      const handleTabKey = (event: KeyboardEvent) => {
-        if (event.key !== 'Tab') return;
+      if (isOpen && preventScroll) {
+        const originalStyle = window.getComputedStyle(document.body).overflow;
+        document.body.style.overflow = 'hidden';
+        return () => {
+          document.body.style.overflow = originalStyle;
+        };
+      }
+    }, [isOpen, preventScroll]);
+    
+    // Handle focus management
+    React.useEffect(() => {
+      if (isOpen) {
+        // Store the currently focused element
+        previousActiveElement.current = document.activeElement as HTMLElement;
         
-        const modal = modalRef.current;
-        if (!modal) return;
-        
-        const focusableElements = modal.querySelectorAll(
-          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-        );
-        
-        const firstElement = focusableElements[0] as HTMLElement;
-        const lastElement = focusableElements[focusableElements.length - 1] as HTMLElement;
-        
-        if (event.shiftKey) {
-          if (document.activeElement === firstElement) {
-            lastElement?.focus();
-            event.preventDefault();
+        // Focus the modal after a brief delay to ensure it's rendered
+        const timer = setTimeout(() => {
+          if (modalRef.current) {
+            modalRef.current.focus();
           }
-        } else {
-          if (document.activeElement === lastElement) {
-            firstElement?.focus();
-            event.preventDefault();
-          }
-        }
-      };
-      
-      document.addEventListener('keydown', handleTabKey);
-      return () => document.removeEventListener('keydown', handleTabKey);
-    }, [isVisible]);
+        }, 100);
+        
+        return () => clearTimeout(timer);
+      } else if (previousActiveElement.current) {
+        // Restore focus when modal closes
+        previousActiveElement.current.focus();
+        previousActiveElement.current = null;
+      }
+    }, [isOpen]);
     
     // Handle overlay click
-    const handleOverlayClick = (event: React.MouseEvent) => {
-      if (closeOnOverlayClick && event.target === event.currentTarget) {
-        onClose();
-      }
-    };
+    const handleOverlayClick = React.useCallback(
+      (event: React.MouseEvent) => {
+        if (event.target === event.currentTarget && closeOnOverlayClick) {
+          onClose();
+        }
+        overlayProps?.onClick?.(event);
+      },
+      [closeOnOverlayClick, onClose, overlayProps]
+    );
     
-    // Close button component
-    const CloseButton = () => {
+    // Handle modal click (prevent event bubbling)
+    const handleModalClick = React.useCallback(
+      (event: React.MouseEvent) => {
+        event.stopPropagation();
+        modalProps?.onClick?.(event);
+      },
+      [modalProps]
+    );
+    
+    // Render close button
+    const renderCloseButton = () => {
       if (!showCloseButton) return null;
       
       return (
@@ -200,14 +190,15 @@ export const Modal = React.forwardRef<ModalRef, ModalProps>(
           variant="ghost"
           size="sm"
           onClick={onClose}
-          className="absolute top-4 right-4 p-1"
           ariaLabel="Close modal"
+          className="absolute top-4 right-4 p-2"
         >
           <svg
             className="w-4 h-4"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
+            aria-hidden="true"
           >
             <path
               strokeLinecap="round"
@@ -220,40 +211,9 @@ export const Modal = React.forwardRef<ModalRef, ModalProps>(
       );
     };
     
-    // Loading overlay
-    const LoadingOverlay = () => (
-      <Container
-        position="absolute"
-        top="0"
-        left="0"
-        width="full"
-        height="full"
-        background="white"
-        opacity="80"
-        display="flex"
-        justify="center"
-        align="center"
-        zIndex="10"
-      >
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-      </Container>
-    );
-    
-    // Header component
-    const HeaderComponent = () => {
-      if (header) {
-        return (
-          <Container
-            padding="6"
-            paddingBottom="0"
-            {...headerProps}
-          >
-            {header}
-          </Container>
-        );
-      }
-      
-      if (!title && !description) return null;
+    // Render header section
+    const renderHeader = () => {
+      if (!title && !subtitle && !headerContent) return null;
       
       return (
         <Container
@@ -261,40 +221,46 @@ export const Modal = React.forwardRef<ModalRef, ModalProps>(
           paddingBottom="0"
           {...headerProps}
         >
-          {title && (
-            <Text
-              tag="h2"
-              size="xl"
-              weight="semibold"
-              color="gray-900"
-              marginBottom={description ? "2" : "0"}
-              {...titleProps}
-            >
-              {title}
-            </Text>
-          )}
-          {description && (
-            <Text
-              tag="p"
-              size="sm"
-              color="gray-600"
-              {...descriptionProps}
-            >
-              {description}
-            </Text>
+          {headerContent || (
+            <>
+              {title && (
+                <Text
+                  tag="h2"
+                  size="xl"
+                  weight="semibold"
+                  color="gray-900"
+                  marginBottom={subtitle ? "2" : "0"}
+                  {...titleProps}
+                >
+                  {title}
+                </Text>
+              )}
+              {subtitle && (
+                <Text
+                  tag="p"
+                  size="sm"
+                  color="gray-600"
+                  {...subtitleProps}
+                >
+                  {subtitle}
+                </Text>
+              )}
+            </>
           )}
         </Container>
       );
     };
     
-    // Body component
-    const BodyComponent = () => {
+    // Render body section
+    const renderBody = () => {
       if (!children) return null;
       
       return (
         <Container
           padding="6"
-          paddingTop={title || description || header ? "4" : "6"}
+          paddingTop="4"
+          paddingBottom="4"
+          className="flex-1 overflow-y-auto"
           {...bodyProps}
         >
           {children}
@@ -302,10 +268,10 @@ export const Modal = React.forwardRef<ModalRef, ModalProps>(
       );
     };
     
-    // Footer component
-    const FooterComponent = () => {
+    // Render footer section
+    const renderFooter = () => {
       const hasActions = primaryAction || secondaryAction;
-      const hasFooterContent = footer || hasActions;
+      const hasFooterContent = footerContent || hasActions;
       
       if (!hasFooterContent) return null;
       
@@ -313,107 +279,90 @@ export const Modal = React.forwardRef<ModalRef, ModalProps>(
         <Container
           padding="6"
           paddingTop="0"
-          background="gray-50"
+          background="gray"
+          border={{ width: "0", style: "solid", color: "gray" }}
+          className="border-t"
           {...footerProps}
         >
-          {footer || (
-            <Container
-              display="flex"
-              gap="3"
-              justify="end"
-              align="center"
-            >
-              {secondaryAction && (
-                <Button
-                  variant="outline"
-                  {...secondaryAction}
-                  onClick={secondaryAction.onClick}
-                >
-                  {secondaryAction.label}
-                </Button>
-              )}
-              {primaryAction && (
-                <Button
-                  variant="primary"
-                  {...primaryAction}
-                  onClick={primaryAction.onClick}
-                >
-                  {primaryAction.label}
-                </Button>
-              )}
-            </Container>
+          {footerContent || (
+            hasActions && (
+              <Container
+                display="flex"
+                gap="3"
+                justify="end"
+                padding="0"
+              >
+                {secondaryAction && (
+                  <Button
+                    variant={secondaryAction.variant || 'outline'}
+                    onClick={secondaryAction.onClick}
+                    disabled={secondaryAction.disabled ?? false}
+                    loading={secondaryAction.loading ?? false}
+                  >
+                    {secondaryAction.label}
+                  </Button>
+                )}
+                {primaryAction && (
+                  <Button
+                    variant={primaryAction.variant || 'primary'}
+                    onClick={primaryAction.onClick}
+                    disabled={primaryAction.disabled ?? false}
+                    loading={primaryAction.loading ?? false}
+                  >
+                    {primaryAction.label}
+                  </Button>
+                )}
+              </Container>
+            )
           )}
         </Container>
       );
     };
     
-    // Modal content
-    const ModalContent = () => (
-      <Container
-        ref={modalRef}
-        position="relative"
-        background="white"
-        borderRadius="lg"
-        shadow="xl"
-        width="full"
-        maxHeight="90vh"
-        overflow="hidden"
-        className={cn(
-          getSizeClasses(),
-          'transform transition-all duration-200',
-          isAnimating && !open ? 'scale-95 opacity-0' : 'scale-100 opacity-100',
-          className
-        )}
-        role="dialog"
-        aria-modal="true"
-        aria-label={ariaLabel}
-        aria-describedby={ariaDescribedBy}
-        aria-labelledby={ariaLabelledBy}
-        tabIndex={-1}
-        {...containerProps}
-      >
-        {loading && <LoadingOverlay />}
-        <CloseButton />
-        
-        <Container
-          display="flex"
-          direction="column"
-          maxHeight="90vh"
-          overflow="auto"
-        >
-          <HeaderComponent />
-          <BodyComponent />
-          <FooterComponent />
-        </Container>
-      </Container>
-    );
+    // Don't render if not open
+    if (!isOpen) return null;
     
-    // Don't render if not visible
-    if (!isVisible || !portalElement) return null;
-    
-    return createPortal(
+    return (
       <Container
-        position="fixed"
-        top="0"
-        left="0"
-        width="full"
-        height="full"
-        zIndex="50"
-        display="flex"
-        justify="center"
-        align="center"
-        padding="4"
         className={cn(
-          'bg-black bg-opacity-50 transition-opacity duration-200',
-          isAnimating && !open ? 'opacity-0' : 'opacity-100',
+          'fixed inset-0 z-50 flex items-center justify-center p-4',
+          !centered && 'items-start pt-16',
           overlayClassName
         )}
+        background="black"
+        opacity="50"
         onClick={handleOverlayClick}
         {...overlayProps}
       >
-        <ModalContent />
-      </Container>,
-      portalElement
+        <Container
+          ref={modalRef}
+          className={cn(
+            'relative bg-white rounded-lg shadow-xl max-h-full flex flex-col',
+            'transform transition-all duration-200 ease-out',
+            'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2',
+            getSizeClasses(),
+            modalClassName
+          )}
+          style={{
+            maxWidth: maxWidth || undefined,
+            maxHeight: maxHeight || undefined,
+            animationDuration: `${animationDuration}ms`
+          }}
+          onClick={handleModalClick}
+          role={role}
+          aria-modal="true"
+          ariaLabel={ariaLabel ?? title ?? 'Modal'}
+          ariaDescribedBy={ariaDescribedBy}
+          ariaLabelledBy={ariaLabelledBy || (title ? 'modal-title' : undefined)}
+          tabIndex={-1}
+          {...modalProps}
+        >
+          {renderCloseButton()}
+          {renderHeader()}
+          {renderBody()}
+          {renderFooter()}
+        </Container>
+      </Container>
     );
   }
 );

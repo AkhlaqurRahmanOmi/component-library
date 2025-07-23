@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { axe, toHaveNoViolations } from 'jest-axe';
+import { toHaveNoViolations } from 'jest-axe';
 import { Text } from '../Text';
 import { 
   testAccessibility, 
@@ -310,7 +310,7 @@ describe('Text Component - Accessibility Tests', () => {
     it('should use appropriate semantic tags', () => {
       render(
         <div>
-          <Text tag="label" htmlFor="input-1">Label text</Text>
+          <Text tag="label">Label text</Text>
           <Text tag="span" role="status">Status text</Text>
           <Text tag="div" role="alert">Alert text</Text>
         </div>

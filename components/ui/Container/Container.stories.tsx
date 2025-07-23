@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { Container } from './Container';
-import type { ContainerProps } from './Container.types';
+
 
 const meta: Meta<typeof Container> = {
   title: 'Components/Container',

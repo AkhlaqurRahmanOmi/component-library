@@ -5,111 +5,105 @@ import type { ButtonProps } from '../../ui/Button/Button.types';
 import type { InputProps } from '../../ui/Input/Input.types';
 
 /**
- * Form field configuration
+ * Form field configuration interface
  */
 export interface FormField {
-  /** Field name/key */
   name: string;
-  /** Field label */
-  label: string;
-  /** Field type */
+  label?: string;
   type?: InputProps['type'];
-  /** Field placeholder */
   placeholder?: string;
-  /** Whether field is required */
   required?: boolean;
-  /** Field validation rules */
   validation?: {
-    required?: boolean;
+    pattern?: string;
     minLength?: number;
     maxLength?: number;
-    pattern?: RegExp;
-    custom?: (value: string) => string | null;
+    min?: number;
+    max?: number;
+    custom?: (value: string) => string | null; // Returns error message or null
   };
-  /** Additional input props */
   inputProps?: Partial<InputProps>;
 }
 
 /**
- * Form validation errors
+ * Form validation errors interface
  */
-export type FormErrors = Record<string, string>;
+export interface FormErrors {
+  [fieldName: string]: string;
+}
 
 /**
- * Form values
+ * Form values interface
  */
-export type FormValues = Record<string, string>;
-
-/**
- * Form submission handler
- */
-export type FormSubmitHandler = (values: FormValues) => void | Promise<void>;
+export interface FormValues {
+  [fieldName: string]: string;
+}
 
 /**
  * Form component props interface
  * Combines Input, Button, and Text components with validation
  */
-export interface FormProps extends Omit<ContainerProps, 'children' | 'onSubmit'> {
-  /** Form fields configuration */
-  fields: FormField[];
-  /** Initial form values */
-  initialValues?: FormValues;
-  /** Form submission handler */
-  onSubmit: FormSubmitHandler;
-  
-  /** Form title */
-  title?: string;
-  /** Form description */
-  description?: string;
-  /** Custom form content */
+export interface FormProps extends Omit<React.FormHTMLAttributes<HTMLFormElement>, 'onSubmit' | 'onChange'> {
+  // Form configuration
+  fields?: FormField[];
   children?: React.ReactNode;
   
-  /** Submit button configuration */
+  // Form state
+  values?: FormValues;
+  errors?: FormErrors;
+  defaultValues?: FormValues;
+  
+  // Form behavior
+  onSubmit?: (values: FormValues, event: React.FormEvent<HTMLFormElement>) => void | Promise<void>;
+  onChange?: (values: FormValues, changedField: string) => void;
+  onValidate?: (values: FormValues) => FormErrors;
+  
+  // Validation options
+  validateOnChange?: boolean;
+  validateOnBlur?: boolean;
+  showErrorsOnSubmit?: boolean;
+  
+  // Form layout
+  layout?: 'vertical' | 'horizontal' | 'inline';
+  spacing?: 'tight' | 'normal' | 'loose';
+  
+  // Header section
+  title?: string;
+  subtitle?: string;
+  description?: string;
+  headerContent?: React.ReactNode;
+  
+  // Footer section
+  footerContent?: React.ReactNode;
+  
+  // Action buttons
   submitButton?: {
     label?: string;
-  } & Partial<ButtonProps>;
-  
-  /** Reset button configuration */
+    variant?: ButtonProps['variant'];
+    disabled?: boolean;
+    loading?: boolean;
+    fullWidth?: boolean;
+  } | false;
   resetButton?: {
     label?: string;
-    show?: boolean;
-  } & Partial<ButtonProps>;
+    variant?: ButtonProps['variant'];
+    disabled?: boolean;
+    onClick?: () => void;
+  } | false;
+  customActions?: React.ReactNode;
   
-  /** Whether the form is in a loading state */
+  // Form state indicators
   loading?: boolean;
-  /** Whether the form is disabled */
   disabled?: boolean;
   
-  /** Validation mode */
-  validationMode?: 'onSubmit' | 'onChange' | 'onBlur';
-  
-  /** Custom validation function */
-  validate?: (values: FormValues) => FormErrors;
-  
-  /** Form layout */
-  layout?: 'vertical' | 'horizontal' | 'inline';
-  
-  /** Custom styling for different form sections */
+  // Styling overrides
+  formProps?: Partial<ContainerProps>;
   headerProps?: Partial<ContainerProps>;
   bodyProps?: Partial<ContainerProps>;
   footerProps?: Partial<ContainerProps>;
   titleProps?: Partial<TextProps>;
+  subtitleProps?: Partial<TextProps>;
   descriptionProps?: Partial<TextProps>;
-  
-  /** Form event handlers */
-  onValuesChange?: (values: FormValues) => void;
-  onValidationChange?: (errors: FormErrors) => void;
-  onReset?: () => void;
-  
-  /** HTML form attributes */
-  method?: 'get' | 'post';
-  action?: string;
-  encType?: string;
-  target?: string;
-  noValidate?: boolean;
+  fieldProps?: Partial<ContainerProps>;
 }
 
-/**
- * Form component ref type
- */
 export type FormRef = HTMLFormElement;

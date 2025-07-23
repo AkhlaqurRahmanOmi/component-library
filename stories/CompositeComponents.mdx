@@ -1,0 +1,418 @@
+<Meta title="Documentation/Composite Components" />
+
+# Composite Components Guide
+
+This guide explains the component composition patterns used in our component library and provides best practices for building complex UI elements from simpler components.
+
+## Overview
+
+Our composite components are built by combining our foundational UI components (Text, Input, Container, Button) to create more complex, feature-rich components. This approach provides several benefits:
+
+- **Consistency**: All components share the same design language and behavior patterns
+- **Maintainability**: Changes to base components automatically propagate to composite components
+- **Flexibility**: Composite components can be customized through props while maintaining consistency
+- **Reusability**: Common patterns are encapsulated and can be reused across applications
+
+## Component Architecture
+
+### Base Components
+- **Text**: Typography and text rendering
+- **Input**: Form inputs with validation
+- **Container**: Layout and spacing
+- **Button**: Interactive elements and actions
+
+### Composite Components
+- **Card**: Content containers with headers, bodies, and actions
+- **Modal**: Dialog overlays with focus management
+- **Form**: Form handling with validation and submission
+- **Navigation**: Menu systems with dropdowns and responsive behavior
+- **Alert**: User feedback with actions and dismissal
+- **Dropdown**: Selection menus with search and filtering
+
+## Composition Patterns
+
+### 1. Container + Content Pattern
+
+Most composite components follow a container + content pattern where a Container component provides the layout structure, and other components provide the content.
+
+```tsx
+// Example: Card component structure
+<Container> {/* Main card container */}
+  <Container> {/* Header section */}
+    <Text tag="h3">Title</Text>
+    <Text>Subtitle</Text>
+  </Container>
+  <Container> {/* Body section */}
+    {children}
+  </Container>
+  <Container> {/* Footer section */}
+    <Button>Primary Action</Button>
+    <Button>Secondary Action</Button>
+  </Container>
+</Container>
+```
+
+### 2. Conditional Rendering Pattern
+
+Composite components use conditional rendering to show/hide sections based on props, keeping the API clean while providing flexibility.
+
+```tsx
+// Example: Conditional sections in Modal
+{title && (
+  <Container> {/* Header */}
+    <Text tag="h2">{title}</Text>
+    {subtitle && <Text>{subtitle}</Text>}
+  </Container>
+)}
+
+<Container> {/* Body */}
+  {children}
+</Container>
+
+{(primaryAction || secondaryAction) && (
+  <Container> {/* Footer */}
+    {secondaryAction && <Button>{secondaryAction.label}</Button>}
+    {primaryAction && <Button>{primaryAction.label}</Button>}
+  </Container>
+)}
+```
+
+### 3. Props Forwarding Pattern
+
+Composite components accept override props that are forwarded to their child components, allowing fine-grained customization.
+
+```tsx
+// Example: Props forwarding in Form
+<Container {...headerProps}>
+  <Text {...titleProps}>{title}</Text>
+  <Text {...subtitleProps}>{subtitle}</Text>
+</Container>
+
+<Container {...bodyProps}>
+  {fields.map(field => (
+    <Input {...field.inputProps} />
+  ))}
+</Container>
+```
+
+### 4. Custom Renderer Pattern
+
+For maximum flexibility, composite components support custom renderer functions that allow complete control over specific sections.
+
+```tsx
+// Example: Custom renderers in Navigation
+{renderBrand ? (
+  renderBrand()
+) : (
+  <Container>
+    {brand.logo}
+    <Text>{brand.title}</Text>
+  </Container>
+)}
+
+{items.map(item => 
+  renderItem ? (
+    renderItem(item, isActive)
+  ) : (
+    <Button>{item.label}</Button>
+  )
+)}
+```
+
+## Best Practices
+
+### 1. Consistent Prop Naming
+
+Use consistent naming conventions across all composite components:
+
+- `title`, `subtitle`, `description` for text content
+- `primaryAction`, `secondaryAction` for action buttons
+- `headerProps`, `bodyProps`, `footerProps` for section overrides
+- `onItemClick`, `onChange`, `onSubmit` for event handlers
+
+### 2. Flexible Content Acceptance
+
+Support both configured content (through props) and custom content (through children):
+
+```tsx
+// Configured content
+<Card
+  title="Card Title"
+  description="Card description"
+  primaryAction={{ label: "Action", onClick: handleClick }}
+/>
+
+// Custom content
+<Card>
+  <CustomHeader />
+  <CustomBody />
+  <CustomFooter />
+</Card>
+```
+
+### 3. Accessibility by Default
+
+Ensure all composite components include proper accessibility features:
+
+- Semantic HTML structure
+- ARIA attributes and roles
+- Keyboard navigation support
+- Focus management
+- Screen reader compatibility
+
+### 4. Responsive Design
+
+Build responsive behavior into composite components:
+
+- Mobile-first approach
+- Collapsible navigation
+- Responsive layouts
+- Touch-friendly interactions
+
+### 5. State Management
+
+Handle internal state appropriately while supporting controlled components:
+
+```tsx
+// Support both controlled and uncontrolled usage
+const [internalValue, setInternalValue] = useState(defaultValue);
+const value = controlledValue ?? internalValue;
+
+const handleChange = (newValue) => {
+  if (controlledValue === undefined) {
+    setInternalValue(newValue);
+  }
+  onChange?.(newValue);
+};
+```
+
+## Component Examples
+
+### Card Component
+
+The Card component demonstrates the container + content pattern with flexible action support. You can see detailed examples in the Card component stories.
+
+### Alert Component
+
+The Alert component shows how to combine icons, text, and actions with conditional rendering. Check the Alert component stories for interactive examples.
+
+## Advanced Patterns
+
+### 1. Compound Components
+
+For complex components, consider using compound component patterns where the main component exports sub-components:
+
+```tsx
+// Usage
+<Form>
+  <Form.Header title="Registration" />
+  <Form.Body>
+    <Form.Field name="email" label="Email" />
+    <Form.Field name="password" label="Password" />
+  </Form.Body>
+  <Form.Footer>
+    <Form.SubmitButton>Register</Form.SubmitButton>
+  </Form.Footer>
+</Form>
+```
+
+### 2. Render Props
+
+Use render props for maximum flexibility in content rendering:
+
+```tsx
+<DataTable
+  data={data}
+  renderRow={(item, index) => (
+    <Card
+      key={item.id}
+      title={item.name}
+      description={item.description}
+      primaryAction={{
+        label: "View Details",
+        onClick: () => handleView(item)
+      }}
+    />
+  )}
+/>
+```
+
+### 3. Context Integration
+
+For components that need to share state or configuration, use React Context:
+
+```tsx
+const FormContext = createContext();
+
+const Form = ({ children, ...props }) => (
+  <FormContext.Provider value={{ formState, handleChange }}>
+    <Container {...props}>
+      {children}
+    </Container>
+  </FormContext.Provider>
+);
+
+const FormField = ({ name, ...props }) => {
+  const { formState, handleChange } = useContext(FormContext);
+  return (
+    <Input
+      value={formState[name]}
+      onChange={(e) => handleChange(name, e.target.value)}
+      {...props}
+    />
+  );
+};
+```
+
+## Testing Composite Components
+
+### 1. Unit Testing
+
+Test each composite component's behavior and prop handling:
+
+```tsx
+describe('Card Component', () => {
+  it('renders title and description', () => {
+    render(<Card title="Test Title" description="Test Description" />);
+    expect(screen.getByText('Test Title')).toBeInTheDocument();
+    expect(screen.getByText('Test Description')).toBeInTheDocument();
+  });
+
+  it('calls action handlers', () => {
+    const handleClick = jest.fn();
+    render(
+      <Card
+        title="Test"
+        primaryAction={{ label: "Click", onClick: handleClick }}
+      />
+    );
+    fireEvent.click(screen.getByText('Click'));
+    expect(handleClick).toHaveBeenCalled();
+  });
+});
+```
+
+### 2. Integration Testing
+
+Test how composite components work together:
+
+```tsx
+describe('Form with Card', () => {
+  it('submits form data from card actions', () => {
+    const handleSubmit = jest.fn();
+    render(
+      <Form onSubmit={handleSubmit}>
+        <Card
+          title="User Info"
+          primaryAction={{ label: "Save", onClick: handleSubmit }}
+        >
+          <Input name="name" label="Name" />
+        </Card>
+      </Form>
+    );
+    // Test form submission through card action
+  });
+});
+```
+
+### 3. Accessibility Testing
+
+Ensure composite components meet accessibility standards:
+
+```tsx
+describe('Modal Accessibility', () => {
+  it('manages focus correctly', () => {
+    const { rerender } = render(<Modal isOpen={false} />);
+    const button = screen.getByRole('button');
+    button.focus();
+    
+    rerender(<Modal isOpen={true} />);
+    expect(screen.getByRole('dialog')).toHaveFocus();
+  });
+
+  it('has proper ARIA attributes', () => {
+    render(<Modal isOpen={true} title="Test Modal" />);
+    const modal = screen.getByRole('dialog');
+    expect(modal).toHaveAttribute('aria-modal', 'true');
+    expect(modal).toHaveAttribute('aria-labelledby');
+  });
+});
+```
+
+## Performance Considerations
+
+### 1. Memoization
+
+Use React.memo and useMemo for expensive computations:
+
+```tsx
+const Card = React.memo(({ title, description, ...props }) => {
+  const computedClasses = useMemo(() => {
+    return buildCardClasses(props);
+  }, [props.variant, props.size, props.hoverable]);
+
+  return (
+    <Container className={computedClasses}>
+      {/* Card content */}
+    </Container>
+  );
+});
+```
+
+### 2. Lazy Loading
+
+For components with heavy dependencies, consider lazy loading:
+
+```tsx
+const HeavyModal = React.lazy(() => import('./HeavyModal'));
+
+const MyComponent = () => (
+  <Suspense fallback={<div>Loading...</div>}>
+    {showModal && <HeavyModal />}
+  </Suspense>
+);
+```
+
+### 3. Virtual Scrolling
+
+For components that render large lists, implement virtual scrolling:
+
+```tsx
+const VirtualDropdown = ({ options, ...props }) => {
+  const virtualizer = useVirtualizer({
+    count: options.length,
+    getScrollElement: () => scrollElementRef.current,
+    estimateSize: () => 40,
+  });
+
+  return (
+    <Dropdown
+      {...props}
+      renderOptions={() => (
+        <div ref={scrollElementRef}>
+          {virtualizer.getVirtualItems().map(virtualItem => (
+            <DropdownOption
+              key={virtualItem.key}
+              option={options[virtualItem.index]}
+            />
+          ))}
+        </div>
+      )}
+    />
+  );
+};
+```
+
+## Conclusion
+
+Composite components provide a powerful way to build complex UI elements while maintaining consistency and reusability. By following these patterns and best practices, you can create a robust component library that scales with your application needs.
+
+Key takeaways:
+- Use consistent composition patterns across components
+- Support both configured and custom content
+- Implement accessibility features by default
+- Provide flexible customization through props
+- Test components thoroughly at unit and integration levels
+- Consider performance implications for complex components
+
+For more detailed examples and API documentation, explore the individual component stories in this Storybook.

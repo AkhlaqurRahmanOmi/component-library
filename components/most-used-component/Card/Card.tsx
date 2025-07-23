@@ -8,48 +8,66 @@ import type { CardProps, CardRef } from './Card.types';
 /**
  * Card component combining Container, Text, and Button components
  * 
- * A flexible card component that can display title, subtitle, description,
- * image, and action buttons in various layouts.
+ * A versatile card component that provides a consistent layout structure
+ * with header, body, and footer sections. Supports various configurations
+ * including images, actions, and different visual variants.
  * 
  * @example
  * ```tsx
+ * // Basic card with title and content
  * <Card
  *   title="Card Title"
- *   subtitle="Card Subtitle"
  *   description="This is a description of the card content."
  *   primaryAction={{
- *     label: "Primary Action",
- *     onClick: () => console.log("Primary clicked")
- *   }}
- *   secondaryAction={{
- *     label: "Secondary",
- *     onClick: () => console.log("Secondary clicked"),
- *     variant: "outline"
+ *     label: "Learn More",
+ *     onClick: () => console.log("Primary action clicked")
  *   }}
  * />
+ * 
+ * // Card with image and custom content
+ * <Card
+ *   variant="elevated"
+ *   image={{
+ *     src: "/image.jpg",
+ *     alt: "Card image",
+ *     aspectRatio: "video"
+ *   }}
+ *   title="Featured Article"
+ *   subtitle="Technology"
+ *   hoverable
+ * >
+ *   <Text>Custom content goes here...</Text>
+ * </Card>
  * ```
  */
 export const Card = React.forwardRef<CardRef, CardProps>(
   (
     {
-      // Card-specific props
+      // Content props
+      children,
       title,
       subtitle,
+      headerContent,
+      content,
       description,
-      children,
-      header,
-      footer,
-      imageSrc,
-      imageAlt,
-      imagePosition = 'top',
+      footerContent,
+      
+      // Action props
       primaryAction,
       secondaryAction,
+      
+      // Variant and interaction props
       variant = 'default',
+      hoverable = false,
       clickable = false,
       onCardClick,
-      loading = false,
       
-      // Custom styling props
+      // Layout props
+      orientation = 'vertical',
+      imagePosition = 'top',
+      image,
+      
+      // Styling override props
       headerProps,
       bodyProps,
       footerProps,
@@ -59,17 +77,19 @@ export const Card = React.forwardRef<CardRef, CardProps>(
       
       // Container props
       className,
+      padding = '6',
+      borderRadius = 'lg',
       ...containerProps
     },
     ref
   ) => {
-    // Card variant styles
-    const getCardVariantClasses = () => {
+    // Build card variant classes
+    const getVariantClasses = () => {
       switch (variant) {
         case 'outlined':
           return 'border border-gray-200 bg-white';
         case 'elevated':
-          return 'bg-white shadow-md border border-gray-100';
+          return 'bg-white shadow-lg border border-gray-100';
         case 'filled':
           return 'bg-gray-50 border border-gray-200';
         default:
@@ -77,217 +97,252 @@ export const Card = React.forwardRef<CardRef, CardProps>(
       }
     };
     
-    // Clickable card styles
-    const clickableClasses = clickable || onCardClick ? 
-      'cursor-pointer hover:shadow-lg transition-shadow duration-200' : '';
+    // Build interaction classes
+    const getInteractionClasses = () => {
+      const classes = [];
+      if (hoverable) {
+        classes.push('transition-all duration-200 hover:shadow-md hover:-translate-y-1');
+      }
+      if (clickable || onCardClick) {
+        classes.push('cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2');
+      }
+      return classes.join(' ');
+    };
     
-    // Loading overlay
-    const LoadingOverlay = () => (
-      <Container
-        position="absolute"
-        top="0"
-        left="0"
-        width="full"
-        height="full"
-        background="white"
-        opacity="80"
-        display="flex"
-        justify="center"
-        align="center"
-        zIndex="10"
-      >
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-      </Container>
+    // Build image aspect ratio classes
+    const getImageAspectRatio = () => {
+      if (!image?.aspectRatio) return 'aspect-video';
+      
+      switch (image.aspectRatio) {
+        case 'square':
+          return 'aspect-square';
+        case 'video':
+          return 'aspect-video';
+        case 'wide':
+          return 'aspect-[21/9]';
+        case 'tall':
+          return 'aspect-[3/4]';
+        default:
+          return 'aspect-video';
+      }
+    };
+    
+    // Handle card click
+    const handleCardClick = React.useCallback(
+      (event: React.MouseEvent) => {
+        if (onCardClick && (clickable || hoverable)) {
+          onCardClick();
+        }
+        containerProps.onClick?.(event);
+      },
+      [onCardClick, clickable, hoverable, containerProps]
     );
     
-    // Image component
-    const ImageComponent = () => {
-      if (!imageSrc) return null;
+    // Handle keyboard interaction
+    const handleKeyDown = React.useCallback(
+      (event: React.KeyboardEvent) => {
+        if ((event.key === 'Enter' || event.key === ' ') && onCardClick) {
+          event.preventDefault();
+          onCardClick();
+        }
+        containerProps.onKeyDown?.(event);
+      },
+      [onCardClick, containerProps]
+    );
+    
+    // Render image component
+    const renderImage = () => {
+      if (!image) return null;
       
       return (
-        <Container
-          className={cn(
-            'overflow-hidden',
-            imagePosition === 'top' && 'rounded-t-lg',
-            imagePosition === 'bottom' && 'rounded-b-lg',
-            (imagePosition === 'left' || imagePosition === 'right') && 'flex-shrink-0'
-          )}
-          width={imagePosition === 'left' || imagePosition === 'right' ? '1/3' : 'full'}
-          height={imagePosition === 'top' || imagePosition === 'bottom' ? '48' : 'full'}
-        >
+        <div className={cn('overflow-hidden', borderRadius && `rounded-t-${borderRadius}`)}>
           <img
-            src={imageSrc}
-            alt={imageAlt || ''}
-            className="w-full h-full object-cover"
+            src={image.src}
+            alt={image.alt}
+            className={cn(
+              'w-full h-full object-cover',
+              getImageAspectRatio()
+            )}
           />
-        </Container>
+        </div>
       );
     };
     
-    // Header component
-    const HeaderComponent = () => {
-      if (header) {
-        return (
-          <Container
-            padding="6"
-            paddingBottom="0"
-            {...headerProps}
-          >
-            {header}
-          </Container>
-        );
-      }
-      
-      if (!title && !subtitle) return null;
+    // Render header section
+    const renderHeader = () => {
+      if (!title && !subtitle && !headerContent) return null;
       
       return (
         <Container
-          padding="6"
-          paddingBottom="0"
+          padding="0"
+          marginBottom="4"
           {...headerProps}
         >
-          {title && (
-            <Text
-              tag="h3"
-              size="lg"
-              weight="semibold"
-              color="gray-900"
-              marginBottom="1"
-              {...titleProps}
-            >
-              {title}
-            </Text>
-          )}
-          {subtitle && (
-            <Text
-              tag="p"
-              size="sm"
-              color="gray-600"
-              {...subtitleProps}
-            >
-              {subtitle}
-            </Text>
+          {headerContent || (
+            <>
+              {title && (
+                <Text
+                  tag="h3"
+                  size="lg"
+                  weight="semibold"
+                  color="gray-900"
+                  marginBottom={subtitle ? "1" : "0"}
+                  {...titleProps}
+                >
+                  {title}
+                </Text>
+              )}
+              {subtitle && (
+                <Text
+                  tag="p"
+                  size="sm"
+                  color="gray-600"
+                  {...subtitleProps}
+                >
+                  {subtitle}
+                </Text>
+              )}
+            </>
           )}
         </Container>
       );
     };
     
-    // Body component
-    const BodyComponent = () => {
-      const hasContent = description || children;
-      if (!hasContent) return null;
+    // Render body section
+    const renderBody = () => {
+      const hasBodyContent = children || content || description;
+      if (!hasBodyContent) return null;
       
       return (
         <Container
-          padding="6"
-          paddingTop={title || subtitle || header ? "4" : "6"}
+          padding="0"
+          marginBottom="4"
           {...bodyProps}
         >
-          {description && (
-            <Text
-              tag="p"
-              size="base"
-              color="gray-700"
-              lineHeight="relaxed"
-              marginBottom={children ? "4" : "0"}
-              {...descriptionProps}
-            >
-              {description}
-            </Text>
+          {children || content || (
+            description && (
+              <Text
+                color="gray-700"
+                lineHeight="relaxed"
+                {...descriptionProps}
+              >
+                {description}
+              </Text>
+            )
           )}
-          {children}
         </Container>
       );
     };
     
-    // Footer component
-    const FooterComponent = () => {
+    // Render footer section
+    const renderFooter = () => {
       const hasActions = primaryAction || secondaryAction;
-      const hasFooterContent = footer || hasActions;
+      const hasFooterContent = footerContent || hasActions;
       
       if (!hasFooterContent) return null;
       
       return (
         <Container
-          padding="6"
-          paddingTop="0"
+          padding="0"
           {...footerProps}
         >
-          {footer || (
-            <Container
-              display="flex"
-              gap="3"
-              justify="end"
-              align="center"
-            >
-              {secondaryAction && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  {...secondaryAction}
-                  onClick={secondaryAction.onClick}
-                >
-                  {secondaryAction.label}
-                </Button>
-              )}
-              {primaryAction && (
-                <Button
-                  variant="primary"
-                  size="sm"
-                  {...primaryAction}
-                  onClick={primaryAction.onClick}
-                >
-                  {primaryAction.label}
-                </Button>
-              )}
-            </Container>
+          {footerContent || (
+            hasActions && (
+              <Container
+                display="flex"
+                gap="3"
+                justify="end"
+                padding="0"
+              >
+                {secondaryAction && (
+                  <Button
+                    variant={secondaryAction.variant || 'outline'}
+                    onClick={secondaryAction.onClick}
+                    disabled={secondaryAction.disabled ?? false}
+                    loading={secondaryAction.loading ?? false}
+                    ariaLabel={secondaryAction.ariaLabel ?? secondaryAction.label}
+                  >
+                    {secondaryAction.label}
+                  </Button>
+                )}
+                {primaryAction && (
+                  <Button
+                    variant={primaryAction.variant || 'primary'}
+                    onClick={primaryAction.onClick}
+                    disabled={primaryAction.disabled ?? false}
+                    loading={primaryAction.loading ?? false}
+                    ariaLabel={primaryAction.ariaLabel ?? primaryAction.label}
+                  >
+                    {primaryAction.label}
+                  </Button>
+                )}
+              </Container>
+            )
           )}
         </Container>
       );
     };
     
-    // Main content container
-    const ContentContainer = () => (
-      <Container
-        display="flex"
-        direction={imagePosition === 'left' || imagePosition === 'right' ? 'row' : 'column'}
-        height="full"
-      >
-        {imagePosition === 'left' && <ImageComponent />}
-        {imagePosition === 'top' && <ImageComponent />}
-        
-        <Container
-          display="flex"
-          direction="column"
-          height="full"
-          width="full"
-        >
-          <HeaderComponent />
-          <BodyComponent />
-          <FooterComponent />
-        </Container>
-        
-        {imagePosition === 'right' && <ImageComponent />}
-        {imagePosition === 'bottom' && <ImageComponent />}
-      </Container>
-    );
+    // Render card content based on orientation and image position
+    const renderCardContent = () => {
+      const header = renderHeader();
+      const body = renderBody();
+      const footer = renderFooter();
+      const imageElement = renderImage();
+      
+      if (orientation === 'horizontal' && image) {
+        return (
+          <Container display="flex" padding="0" gap="6">
+            {(imagePosition === 'left') && (
+              <Container width="1/3" padding="0">
+                {imageElement}
+              </Container>
+            )}
+            <Container display="flex" direction="column" padding="0" className="flex-1">
+              {header}
+              {body}
+              {footer}
+            </Container>
+            {(imagePosition === 'right') && (
+              <Container width="1/3" padding="0">
+                {imageElement}
+              </Container>
+            )}
+          </Container>
+        );
+      }
+      
+      // Vertical orientation (default)
+      return (
+        <>
+          {(imagePosition === 'top') && imageElement}
+          {header}
+          {body}
+          {footer}
+          {(imagePosition === 'bottom') && imageElement}
+        </>
+      );
+    };
     
     return (
       <Container
         ref={ref}
-        position="relative"
-        borderRadius="lg"
-        overflow="hidden"
         className={cn(
-          getCardVariantClasses(),
-          clickableClasses,
+          getVariantClasses(),
+          getInteractionClasses(),
           className
         )}
-        onClick={onCardClick}
+        padding={padding}
+        borderRadius={borderRadius}
+        onClick={handleCardClick}
+        onKeyDown={handleKeyDown}
+        tabIndex={(clickable || onCardClick) ? 0 : undefined}
+        role={(clickable || onCardClick) ? 'button' : 'article'}
+        ariaLabel={(clickable || onCardClick) ? `Card: ${title || 'Interactive card'}` : undefined}
+        ariaDescribedBy={description ? `${title || 'card'}-description` : undefined}
         {...containerProps}
       >
-        {loading && <LoadingOverlay />}
-        <ContentContainer />
+        {renderCardContent()}
       </Container>
     );
   }
